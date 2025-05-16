@@ -5,21 +5,17 @@ RUN apt-get update && \
     apt-get install -y git wget ffmpeg libsm6 libxext6 && \
     pip install --upgrade pip
 
-# Set the working directory
+# Set working directory
 WORKDIR /app
 
-# Copy your Flask API app
+# Copy your Flask app file (adjust if needed)
 COPY app.py .
 
-# Clone the Wav2Lip-GFPGAN repository
+# Clone the Wav2Lip-GFPGAN repo
 RUN git clone https://github.com/ajay-sainy/Wav2Lip-GFPGAN.git
 
-# List contents for debugging (optional - can be removed after testing)
-RUN ls -R Wav2Lip-GFPGAN
-
-# Install Python dependencies
-RUN pip install -r Wav2Lip-GFPGAN/requirements.txt && \
-    pip install flask
+# Fix incorrect requirement syntax in requirements.txt
+RUN sed -i 's/torchvision>=>=0.8.2/torchvision>=0.8.2/' Wav2Lip-GFPGAN/requirements.txt
 
 # Download face detection model
 RUN mkdir -p Wav2Lip-GFPGAN/Wav2Lip-master/face_detection/detection/sfd && \
@@ -28,11 +24,16 @@ RUN mkdir -p Wav2Lip-GFPGAN/Wav2Lip-master/face_detection/detection/sfd && \
 
 # Download pretrained Wav2Lip model
 RUN pip install gdown && \
+    mkdir -p Wav2Lip-GFPGAN/Wav2Lip-master/checkpoints && \
     gdown https://drive.google.com/uc?id=1fQtBSYEyuai9MjBOF8j7zZ4oQ9W2N64q \
     -O Wav2Lip-GFPGAN/Wav2Lip-master/checkpoints/wav2lip.pth
 
-# Expose port for the Flask API
+# Install Python requirements
+RUN pip install -r Wav2Lip-GFPGAN/requirements.txt && \
+    pip install flask
+
+# Expose Flask app port
 EXPOSE 5000
 
-# Run the Flask app
+# Run the app
 CMD ["python", "app.py"]
