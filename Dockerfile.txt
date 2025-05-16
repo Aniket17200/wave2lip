@@ -5,16 +5,23 @@ RUN apt-get update && \
     apt-get install -y git wget ffmpeg libsm6 libxext6 && \
     pip install --upgrade pip
 
-# Set working directory
+# Set the working directory
 WORKDIR /app
 
-# Copy your app.py
+# Copy your Flask API app
 COPY app.py .
 
-# Clone Wav2Lip-GFPGAN
+# Clone the Wav2Lip-GFPGAN repository
 RUN git clone https://github.com/ajay-sainy/Wav2Lip-GFPGAN.git
 
-# Download models
+# List contents for debugging (optional - can be removed after testing)
+RUN ls -R Wav2Lip-GFPGAN
+
+# Install Python dependencies
+RUN pip install -r Wav2Lip-GFPGAN/requirements.txt && \
+    pip install flask
+
+# Download face detection model
 RUN mkdir -p Wav2Lip-GFPGAN/Wav2Lip-master/face_detection/detection/sfd && \
     wget https://www.adrianbulat.com/downloads/python-fan/s3fd-619a316812.pth \
     -O Wav2Lip-GFPGAN/Wav2Lip-master/face_detection/detection/sfd/s3fd.pth
@@ -24,12 +31,8 @@ RUN pip install gdown && \
     gdown https://drive.google.com/uc?id=1fQtBSYEyuai9MjBOF8j7zZ4oQ9W2N64q \
     -O Wav2Lip-GFPGAN/Wav2Lip-master/checkpoints/wav2lip.pth
 
-# Install Python dependencies
-RUN pip install -r Wav2Lip-GFPGAN/Wav2Lip-master/requirements.txt && \
-    pip install flask
-
-# Expose port
+# Expose port for the Flask API
 EXPOSE 5000
 
-# Run the API
+# Run the Flask app
 CMD ["python", "app.py"]
